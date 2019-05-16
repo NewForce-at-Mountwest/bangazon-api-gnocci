@@ -8,6 +8,7 @@ namespace BangazonAPI.Models
     //Product Class w/ Two FKs of Customer and ProductType
     public class Product
     {
+        public int Id { get; set; }
         public int Price { get; set; }
         public string Title { get; set; }
         public string Description { get; set; }

@@ -9,6 +9,7 @@ namespace BangazonAPI.Models
     //Customer Class : Get/Set Firstname/Lastname and added two list for production and PaymentType
     public class Customer
     {
+        public int Id { get; set; }
         public string FirstName { get; set; }
         public string LastName { get; set; }
         public List<Product> ProductList { get; set; } = new List<Product>();

@@ -8,6 +8,7 @@ namespace BangazonAPI.Models
     //Product Class
     public class ProductType
     {
+        public int Id { get; set; }
         public string Name { get; set; }
     }
 }

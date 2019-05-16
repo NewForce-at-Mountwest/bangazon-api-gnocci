@@ -1,0 +1,31 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.28803.202
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "BangazonAPI", "BangazonAPI\BangazonAPI.csproj", "{1ECCB2DC-3820-441C-AF92-0047487BC3BB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestBangazonAPI", "TestBangazonAPI\TestBangazonAPI.csproj", "{5F926635-2304-49DD-A6CC-A39219BEE001}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1ECCB2DC-3820-441C-AF92-0047487BC3BB}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1ECCB2DC-3820-441C-AF92-0047487BC3BB}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1ECCB2DC-3820-441C-AF92-0047487BC3BB}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1ECCB2DC-3820-441C-AF92-0047487BC3BB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{5F926635-2304-49DD-A6CC-A39219BEE001}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{5F926635-2304-49DD-A6CC-A39219BEE001}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{5F926635-2304-49DD-A6CC-A39219BEE001}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{5F926635-2304-49DD-A6CC-A39219BEE001}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {A320C172-0EE4-4ECE-8EF7-2898056B916F}
+	EndGlobalSection
+EndGlobal

@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 namespace BangazonAPI.Models
 {
+
+    //Order Class : Two FK (PaymentType/CustomerId) Two List for Production and Customer 
     public class Order
     {
         public int PaymentTypeId { get; set; }

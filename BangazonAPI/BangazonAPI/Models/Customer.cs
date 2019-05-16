@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 
 namespace BangazonAPI.Models
 {
+
+    //Customer Class : Get/Set Firstname/Lastname and added two list for production and PaymentType
     public class Customer
     {
         public string FirstName { get; set; }

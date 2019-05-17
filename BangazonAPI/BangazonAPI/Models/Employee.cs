@@ -15,7 +15,11 @@ namespace BangazonAPI.Models
 
         public bool IsSuperViser { get; set; }
 
+        //------------------Referenct to Department Name Ticket #6--------------------//
         public Department CurrentDepartment { get; set; }
+
+        //-------------------Reference to Most Recent Computer Ticket #6-----------------//
+        public Computer AssignedComputer { get; set; }
 
     }
 }

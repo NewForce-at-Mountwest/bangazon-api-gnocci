@@ -13,5 +13,9 @@ namespace BangazonAPI.Models
 
         public int Budget { get; set; }
 
+        //---------------List of Employees Ticket #7-------------//
+
+        public List<Employee> EmployeeList { get; set; } = new List<Employee>();
+
     }
 }

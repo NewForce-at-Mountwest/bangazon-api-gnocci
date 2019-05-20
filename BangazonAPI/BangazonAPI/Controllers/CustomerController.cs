@@ -55,7 +55,7 @@ namespace CustomerResource.Controllers
                                                   p.Price AS 'Product Price',
                                                   p.Title AS 'Product Title',
                                                   p.[Description] AS 'Product Description',
-                                                  p.Quantity AS 'Product Quantity'";
+                                                  p.Quantity AS 'Product Quantity',p.CustomerId AS 'Customer Id', p.ProductTypeId AS 'Product Type Id'";
                         string productTable = @"JOIN Product p ON c.Id = p.CustomerId";
 
                         //Making command = the query strings 
@@ -83,7 +83,7 @@ namespace CustomerResource.Controllers
 
                         string paymentColumn = @",pm.Id AS 'Payment Id',
                                                   pm.Name AS 'Payment Name',
-                                                  pm.AcctNumber AS 'Payment Account Number'";
+                                                  pm.AcctNumber AS 'Payment Account Number', pm.CustomerId AS 'Customer Id'";
                         string paymentTable = @"Join PaymentType pm on c.Id = pm.CustomerId";
                         //Adding the strings together to show customer and payment
                         command = $@"{customerColumn}
@@ -91,10 +91,6 @@ namespace CustomerResource.Controllers
                                      {customerTable}
                                      {paymentTable}";
                     }
-
-
-
-
 
                     cmd.CommandText = command;
                     SqlDataReader reader = cmd.ExecuteReader();
@@ -116,6 +112,8 @@ namespace CustomerResource.Controllers
                             Product currentProduct = new Product
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal("Product Id")),
+                                CustomerId = reader.GetInt32(reader.GetOrdinal("Customer Id")),
+                                ProductTypeId = reader.GetInt32(reader.GetOrdinal("Product Type Id")),
                                 Price = reader.GetInt32(reader.GetOrdinal("Product Price")),
                                 Title = reader.GetString(reader.GetOrdinal("Product Title")),
                                 Description = reader.GetString(reader.GetOrdinal("Product Description")),
@@ -144,6 +142,7 @@ namespace CustomerResource.Controllers
                                 Id = reader.GetInt32(reader.GetOrdinal("Payment Id")),
                                 AcctNumber = reader.GetInt32(reader.GetOrdinal("Payment Account Number")),
                                 Name = reader.GetString(reader.GetOrdinal("Payment Name")),
+                                CustomerId = reader.GetInt32(reader.GetOrdinal("Customer Id"))
                             };
 
                             if (customers.Any(c => c.Id == attempt.Id))
@@ -157,10 +156,11 @@ namespace CustomerResource.Controllers
                                 customers.Add(attempt);
                             }
                         }
-                        else
-                        {
-                            customers.Add(attempt);
-                        }
+                        //Made products print twice 
+                        //else
+                        //{
+                        //    customers.Add(attempt);
+                        //}
                     }
                     reader.Close();
 

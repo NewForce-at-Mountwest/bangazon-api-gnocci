@@ -131,7 +131,6 @@ namespace CustomerResource.Controllers
                             {
                                 //if the product is not in the list it will add it
                                 attempt.ProductList.Add(currentProduct);
-                                customers.Add(attempt);
                             }
                         }
                         if (include == "payments")
@@ -157,10 +156,10 @@ namespace CustomerResource.Controllers
                             }
                         }
                         //Made products print twice 
-                        //else
-                        //{
-                        //    customers.Add(attempt);
-                        //}
+                        else
+                        {
+                            customers.Add(attempt);
+                        }
                     }
                     reader.Close();
 

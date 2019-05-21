@@ -155,7 +155,6 @@ namespace CustomerResource.Controllers
                                 customers.Add(attempt);
                             }
                         }
-                        //Made products print twice 
                         else
                         {
                             customers.Add(attempt);

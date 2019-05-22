@@ -72,28 +72,28 @@ namespace BangazonAPITest
                 // Read the response body as JSON
                 string responseBody = await response.Content.ReadAsStringAsync();
 
-                // Convert the JSON to a list of Customer instances
+                // Convert the JSON to a list of Order instances
                 List<Order> orderList = JsonConvert.DeserializeObject<List<Order>>(responseBody);
 
                 // Did we get back a 200 OK status code?
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-                // Are there any customers in the list?
+                // Are there any orders in the list?
                 Assert.True(orderList.Count > 0);
             }
         }
         [Fact]
-        //Single test to get single customer
+        //Single test to get single order
         public async Task Single_Order_Test()
         {
 
             using (HttpClient client = new APIClientProvider().Client)
             {
 
-                // Create a new customer
+                // Create a new order
                 Order newOrder = await createOrder(client);
 
-                // Try to get that customer from api/customer/
+                // Try to get that order from api/order/
                 HttpResponseMessage response = await client.GetAsync($"api/order/{newOrder.Id}");
 
                 response.EnsureSuccessStatusCode();
@@ -104,12 +104,12 @@ namespace BangazonAPITest
                 // Turn the JSON into C#
                 Order order = JsonConvert.DeserializeObject<Order>(responseBody);
 
-                // Check to see if our response is == to code Larry Johnson 
+                // Check to see if our response is == 5
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 Assert.Equal(5, newOrder.PaymentTypeId);
                 Assert.Equal(5, newOrder.CustomerId);
 
-                // Delete the customer
+                // Delete the order
                 deleteOrder(newOrder, client);
             }
         }
@@ -122,7 +122,7 @@ namespace BangazonAPITest
 
             using (var client = new APIClientProvider().Client)
             {
-                // Try to get a customer with an enormously huge Id
+                // Try to get a order with an enormously huge Id
                 HttpResponseMessage response = await client.GetAsync("api/order/999999999");
 
                 // It should bring back a 204 no content error
@@ -130,7 +130,7 @@ namespace BangazonAPITest
             }
         }
 
-        //Test to create a customer & Delete, don't have delete method but added for future reference for myself
+        //Test to create a order & Delete, don't have delete method but added for future reference for myself
         [Fact]
         public async Task Test_Create_And_Delete_Order()
         {
@@ -150,7 +150,7 @@ namespace BangazonAPITest
         }
 
 
-        //Test to delete customer that does not exist in DB
+        //Test to delete order that does not exist in DB
         [Fact]
         public async Task Test_Delete_NonExistent_Order_Fails()
         {
@@ -165,20 +165,20 @@ namespace BangazonAPITest
 
 
         [Fact]
-        //test to edit a customer
+        //test to edit a order
         public async Task Test_Modify_Order()
         {
 
-            // change the customers name 
+            // change the orders paymenttype
             int newPaymentType = 3;
 
             using (HttpClient client = new APIClientProvider().Client)
             {
 
-                // Create a new customer
+                // Create a new order
                 Order newOrder = await createOrder(client);
 
-                // Change their first name
+                // Change order payment type
                 newOrder.PaymentTypeId = newPaymentType;
 
                 // Convert them to JSON
@@ -211,7 +211,7 @@ namespace BangazonAPITest
 
                 Assert.Equal(HttpStatusCode.OK, getOrder.StatusCode);
 
-                // Make sure his name was in fact updated
+                // Make sure payment type was updated
                 Assert.Equal(newPaymentType, modifiedOrder.PaymentTypeId);
 
                 // delete

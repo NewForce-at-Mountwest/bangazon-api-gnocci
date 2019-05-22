@@ -34,7 +34,7 @@ namespace BangazonAPI.Controllers
         }
 
 
-        //Get method with two strings, 'include', 'q'
+        //Get method with two strings, 'include', 'completed'
         [HttpGet]
         public async Task<IActionResult> Get(string include, string completed)
         {
@@ -45,11 +45,11 @@ namespace BangazonAPI.Controllers
                 {
                     //Making an empty string "command" to build up for different query strings
                     string command = "";
-                    //Strings to show customer information
+                    //Strings to show order information
                     string orderColumn = @"SELECT o.Id AS 'Order Id', o.PaymentTypeId AS 'Payment-Type Id', o.CustomerId AS 'Customer Id'";
                     string orderTable = "FROM [Order] o";
 
-                    //Making Query string to show customer product type if they ask for it (?include=products)
+                    //Making Query string to show order product type if they ask for it (?include=products)
                     if (include == "products")
                     {
                         string orderProductColumn = @",op.Id AS 'Order-Product Id', op.OrderId AS 'Order Id', op.ProductId AS 'Product Id'";
@@ -71,12 +71,12 @@ namespace BangazonAPI.Controllers
                                      {orderProductTable}";
                     }
                     else
-                    // set command to = just customer information if the user does not add 'include'
+                    // set command to = just order information if the user does not add 'include'
                     {
                         command = $@"{orderColumn}
                                       {orderTable}";
                     }
-                    //Another query string, doing the same thing as product except w/ payments
+                    //Another query string, doing the same thing as product except w/ customers
                     if (include == "customers")
                     {
 
@@ -84,7 +84,7 @@ namespace BangazonAPI.Controllers
                                                     c.FirstName AS 'Customer First Name',
                                                     c.LastName AS 'Customer Last Name'";
                         string customerTable = @"FROM Customer c JOIN [Order] o ON c.Id = o.CustomerId";
-                        //Adding the strings together to show customer and payment
+                        //Adding the strings together to show customer and order
                         command = $@"{orderColumn}
                                      {customerColumn}
                                      {customerTable}";
@@ -106,7 +106,7 @@ namespace BangazonAPI.Controllers
                     while (reader.Read())
                     {
                         Order currentOrder = new Order
-                        //Getting the information of the customer - FUTURE JOSH MAKE SURE YOU REFERENCE WHAT YOU SET THE COLUM NAME 'AS' --
+                        //Getting the information of the order
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Order Id")),
                             CustomerId = reader.GetInt32(reader.GetOrdinal("Customer Id"))
@@ -147,7 +147,7 @@ namespace BangazonAPI.Controllers
                                 Description = reader.GetString(reader.GetOrdinal("Product Description")),
                                 Quantity = reader.GetInt32(reader.GetOrdinal("Product Quantity"))
                             };
-                            // Determining if customers list already has the current product in it
+                            // Determining if orders list already has the current product in it
                             if (orders.Any(c => c.Id == currentOrder.Id))
                             {
                                 //Finds the product in the list (if it is in there)
@@ -162,7 +162,7 @@ namespace BangazonAPI.Controllers
                         }
                         if (include == "customers")
                         {
-                            //Same thing as above but for payments
+                            //Same thing as above but for customers
                             Customer NewCustomer = new Customer
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal("Customer Id")),
@@ -184,6 +184,8 @@ namespace BangazonAPI.Controllers
                 }
             }
         }
+
+        //getting single order
 
         [HttpGet("{Id}", Name = "GetOrder")]
         public async Task<IActionResult> Get([FromRoute] int id)
@@ -220,6 +222,8 @@ namespace BangazonAPI.Controllers
             }
         }
 
+        //Method for post
+
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Order Order)
         {
@@ -240,6 +244,7 @@ namespace BangazonAPI.Controllers
             }
         }
 
+        //method for edit 'put'
         [HttpPut("{id}")]
         public async Task<IActionResult> Put([FromRoute] int id, [FromBody] Order Order)
         {
@@ -279,6 +284,8 @@ namespace BangazonAPI.Controllers
                 }
             }
         }
+
+        //delete method
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete([FromRoute] int id)

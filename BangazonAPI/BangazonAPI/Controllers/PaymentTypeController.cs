@@ -1,358 +1,133 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using BangazonAPI.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
-using System.Data;
+using System;
+using System.Collections.Generic;
 using System.Data.SqlClient;
-using BangazonAPI.Data;
-using BangazonAPI.Models;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using System.Threading.Tasks;
 
+//Ticket #3: Allow Developers to Access Payment Type Resource
 
+//# Feature Criteria:
+// - `GET`
+// - `POST`
+// - `PUT`
+// - `DELETE`
+// - User should be able to GET a List, and GET a Single Item.
+
+//Class to GET All, POST, PUT, and DELETE Payment Type in Bamngazon API:
 namespace BangazonAPI.Controllers
 {
-
-    //Ticket #3: Allow Developers to Access Payment Type Resource
-
-    //# Feature Criteria:
-    // - `GET`
-    // - `POST`
-    // - `PUT`
-    // - `DELETE`
-    // - User should be able to GET a list, and GET a single item.
-
-
-    //Class to GET all, POST, PUT, and DELETE payment type in Bamngazon API:
     [Route("api/[controller]")]
     [ApiController]
-    //public class PaymentTypeController : Controller
     public class PaymentTypeController : ControllerBase
     {
         private readonly IConfiguration _config;
 
         public PaymentTypeController(IConfiguration config)
-
-        //Empty Variable _context that references Context[.cs] class:
-        //private Context _context;
-        //public PaymentTypeController(Context ctx)
         {
-            //_context = ctx;
             _config = config;
         }
 
         public SqlConnection Connection
         {
-
             get
             {
                 return new SqlConnection(_config.GetConnectionString("DefaultConnection"));
             }
-
         }
 
-
-        // GET a List, and GET a Single Item:
+        //GET List of ACTIVE (Is[NOT]Archived) Payment Types:
         [HttpGet]
-        //public IActionResult Get()
-        //{
-        //    IQueryable<object> PaymentType = from paymentType in _context.PaymentType select paymentType;
-
-        //    if (PaymentType == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    return Ok(PaymentType);
-
-        //}
-        public async Task<IActionResult> Get(string include, string q)
+        public async Task<IActionResult> GetAllPaymentTypes()
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    //Empty string "command" to Build Query Strings:
-                    string command = "";
-                    //Strings to Show Payment Type Information:
-                    string paymentTypeColumn = @"SELECT pm.Id AS 'PaymentType Id',
-                    pm.AcctNumber AS 'PaymentType Account Number',
-                    pm.[Name] AS 'PaymentType (Card Type)'";
-                    string paymentTypeTable = "FROM PaymentType pm";
-
-                    //Making Query String to Show Customer Information, if Requested (?include=customers):
-                    if (include == "customers")
-                    {
-                        string customerColumn = @",c.Id AS 'Customer Id',
-                                                  c.FirstName AS 'Customer First Name',
-                                                  c.LastName AS 'Customer Last Name'";
-                        string customerTable = @"JOIN Customer c ON c.Id = pm.CustomerId";
-
-                        //Making "command" = the Query Strings:
-                        command = $@"{paymentTypeColumn}
-                                     {customerColumn}
-                                     {paymentTypeTable}
-                                     {customerTable}";
-                    }
-
-                    else
-                    // Set "command" to = Only Payment Type Information, if the User does not add "include":
-                    {
-                        command = $@"{paymentTypeColumn}
-                                     {paymentTypeTable}";
-                    }
-
-                    //If Statement for 'q' String, User Sets q = "":
-                    if (q != null)
-                    {
-                        command += $" WHERE pm.AcctNumber LIKE '{q}%' OR pm.Name LIKE '{q}%'";
-                    }
-
-                    //Query String for Orders:
-                    if (include == "orders")
-                    {
-
-                        string orderColumn = @",o.Id AS 'Order Id',
-                                                  o.CustomerId AS 'Order Customer ID',
-                                                  o.PaymentTypeId AS 'Payment Type ID', o.CustomerId AS 'Customer Id'";
-                        string orderTable = @"Join Order o on pm.Id = o.PaymentTypeId";
-                        //Combining Strings to show Payment Type and Order Information:
-                        command = $@"{paymentTypeColumn}
-                                     {orderColumn}
-                                     {paymentTypeTable}
-                                     {orderTable}";
-                    }
-
-                    cmd.CommandText = command;
+                    string commandText = $"SELECT Id, AcctNumber, Name, CustomerId, IsArchived FROM PaymentType WHERE IsArchived = 0";
+                    cmd.CommandText = commandText;
                     SqlDataReader reader = cmd.ExecuteReader();
                     List<PaymentType> paymentTypes = new List<PaymentType>();
-
+                    PaymentType paymentType = null;
                     while (reader.Read())
                     {
-                        PaymentType attempt = new PaymentType
-                        //Getting the Payment Type Information:
+                        paymentType = new PaymentType
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("PaymentType Id")),
-                            AcctNumber = reader.GetInt32(reader.GetOrdinal("PaymentType Account Number")),
-                            Name = reader.GetString(reader.GetOrdinal("PaymentType (Card Type)"))
+                            Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                            AcctNumber = reader.GetInt32(reader.GetOrdinal("AcctNumber")),
+                            Name = reader.GetString(reader.GetOrdinal("Name")),
+                            CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                            IsArchived = reader.GetBoolean(reader.GetOrdinal("IsArchived"))
                         };
-
-                        //Getting the Customer Information, if included:
-                        if (include == "customers")
-                        {
-                            Customer currentCustomer = new Customer
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("Customer Id")),
-                                FirstName = reader.GetString(reader.GetOrdinal("Customer First Name")),
-                                LastName = reader.GetString(reader.GetOrdinal("Customer Last Name"))
-                            };
-
-                            // Determining if Payment Type List references the Customer(s):
-                            if (paymentTypes.Any(pm => pm.Id == attempt.Id))
-                            {
-                                //Finds the Customer in List:
-                                PaymentType thisPaymentType = paymentTypes.Where(pm => pm.Id == attempt.Id).FirstOrDefault();
-                                thisPaymentType.CustomerList.Add(currentCustomer);
-                            }
-
-                            //If PaymentType is NOT in said List, it will be Added:
-                            else
-                            {
-                                attempt.CustomerList.Add(currentCustomer);
-                            }
-                        }
-                        if (include == "orders")
-                        {
-                            //For Orders:
-                            Order currentOrder = new Order
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("Order Id")),
-                                CustomerId = reader.GetInt32(reader.GetOrdinal("Order Customer ID")),
-                                PaymentTypeId = reader.GetInt32(reader.GetOrdinal("Payment Type ID"))
-                            };
-
-                            if (paymentTypes.Any(pm => pm.Id == attempt.Id))
-                            {
-                                PaymentType thisPaymentType = paymentTypes.Where(pm => pm.Id == attempt.Id).FirstOrDefault();
-                                thisPaymentType.OrderList.Add(currentOrder);
-                            }
-                            else
-                            {
-                                attempt.OrderList.Add(currentOrder);
-                                paymentTypes.Add(attempt);
-                            }
-                        }
-                        //Print:
-                        else
-                        {
-                            paymentTypes.Add(attempt);
-                        }
+                        paymentTypes.Add(paymentType);
                     }
                     reader.Close();
-
                     return Ok(paymentTypes);
                 }
             }
         }
 
-        //string paymentTypeColumn = @"SELECT pm.Id AS 'PaymentType Id',
-        //            pm.AcctNumber AS 'PaymentType Account Number',
-        //            pm.[Name] AS 'PaymentType (Card Type)'";
-        //string paymentTypeTable = "FROM PaymentType pm";
-        // GET a Single Payment Type by "Id":
-        [HttpGet("{Id}", Name = "GetSinglePaymentType")]
-        public async Task<IActionResult> Get([FromRoute] int id)
+        //GET Code for Single Payment Type (Is[NOT]Archived?):
+        [HttpGet("{id}", Name = "PaymentType")]
+        public async Task<IActionResult> GetSinglePaymentType([FromRoute] int id)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"
-                        SELECT
-                            Id, AcctNumber, [Name]
-                        FROM PaymentType
-                        WHERE Id = @id";
-                    cmd.Parameters.Add(new SqlParameter("@Id", id));
+                    cmd.CommandText = $"SELECT Id, AcctNumber, Name, CustomerId, IsArchived from PaymentType WHERE Id=@id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
-
-                    PaymentType PaymentType = null;
-
-                    if (reader.Read())
+                    PaymentType paymentTypeToDisplay = null;
+                    while (reader.Read())
                     {
-                        PaymentType = new PaymentType
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("PaymentType Id")),
-                            AcctNumber = reader.GetInt32(reader.GetOrdinal("PaymentType Account Number")),
-                            Name = reader.GetString(reader.GetOrdinal("PaymentType (Card Type)"))
-
+                            paymentTypeToDisplay = new PaymentType
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
+                                AcctNumber = reader.GetInt32(reader.GetOrdinal("AcctNumber")),
+                                Name = reader.GetString(reader.GetOrdinal("Name")),
+                                CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
+                                IsArchived = reader.GetBoolean(reader.GetOrdinal("IsArchived"))
+                            };
                         };
-                    }
+                    };
                     reader.Close();
-
-                    return Ok(PaymentType);
+                    return Ok(paymentTypeToDisplay);
                 }
             }
         }
-        //public IActionResult Get([FromRoute] int Id)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
 
-        //    try
-        //    {
-        //        PaymentType PaymentType = _context.PaymentType.Single(m => m.Id == Id);
-
-        //        if (PaymentType == null)
-        //        {
-        //            return NotFound();
-        //        }
-
-        //        return Ok(PaymentType);
-        //    }
-        //    catch (System.InvalidOperationException ex)
-        //    {
-        //        return NotFound(ex);
-        //    }
-        //}
-
-
-        // POST ('Add') New Payment Type:
+        //  POST: Code to CREATE a Payment Type:
         [HttpPost]
-        //public IActionResult Post([FromBody] PaymentType newPaymentType)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-
-        //    _context.PaymentType.Add(newPaymentType);
-
-        //    try
-        //    {
-        //        _context.SaveChanges();
-        //    }
-        //    catch (DbUpdateException)
-        //    {
-        //        if (PaymentTypeExists(newPaymentType.Id))
-        //        {
-        //            return new StatusCodeResult(StatusCodes.Status409Conflict);
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-
-        //    return CreatedAtRoute("GetSinglePaymentType", new { id = newPaymentType.Id }, newPaymentType);
-        //}
-        public async Task<IActionResult> Post([FromBody] PaymentType PaymentType)
+        public async Task<IActionResult> PostPaymentType([FromBody] PaymentType paymentType)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"INSERT INTO PaymentType (AcctNumber, Name)
-                                        OUTPUT INSERTED.Id
-                                        VALUES (@acctnumber, @name)";
-                    cmd.Parameters.Add(new SqlParameter("@acctnumber", PaymentType.AcctNumber));
-                    cmd.Parameters.Add(new SqlParameter("@name", PaymentType.Name));
+                    cmd.CommandText = $@"INSERT INTO PaymentType (AcctNumber, Name, CustomerId, IsArchived)
+                                                    OUTPUT INSERTED.Id
+                                                    VALUES (@AcctNumber, @Name, @CustomerId, 1)";
+                    cmd.Parameters.Add(new SqlParameter("@AcctNumber", paymentType.AcctNumber));
+                    cmd.Parameters.Add(new SqlParameter("@Name", paymentType.Name));
+                    cmd.Parameters.Add(new SqlParameter("@CustomerId", paymentType.CustomerId));
                     int newId = (int)cmd.ExecuteScalar();
-                    PaymentType.Id = newId;
-                    return CreatedAtRoute("GetPaymentType", new { id = newId }, PaymentType);
+                    paymentType.Id = newId;
+                    return CreatedAtRoute("PaymentType", new { id = newId }, paymentType);
                 }
             }
         }
 
-
-        // "HELPER METHOD" checks if PaymentType Exists in the Database:
-        //private bool PaymentTypeExists(int Id)
-        //{
-        //    return _context.PaymentType.Count(e => e.Id == Id) > 0;
-        //}
-
-
-        // EDIT Payment Type Object:
+        // PUT Code to EDIT a Payment Type:
         [HttpPut("{id}")]
-        //public IActionResult Put(int id, [FromBody] PaymentType modifiedPaymentType)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-
-        //    if (id != modifiedPaymentType.Id)
-        //    {
-        //        return BadRequest();
-        //    }
-
-        //    _context.Entry(modifiedPaymentType).State = EntityState.Modified;
-
-        //    try
-        //    {
-        //        _context.SaveChanges();
-        //    }
-        //    catch (DbUpdateConcurrencyException)
-        //    {
-        //        if (!PaymentTypeExists(id))
-        //        {
-        //            return NotFound();
-        //        }
-        //        else
-        //        {
-        //            throw;
-        //        }
-        //    }
-
-        //    return new StatusCodeResult(StatusCodes.Status204NoContent);
-        //}
-        public async Task<IActionResult> Put([FromRoute] int id, [FromBody] PaymentType PaymentType)
+        public async Task<IActionResult> PutPaymentType([FromRoute] int id, [FromBody] PaymentType paymentType)
         {
             try
             {
@@ -362,25 +137,26 @@ namespace BangazonAPI.Controllers
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
                         cmd.CommandText = @"UPDATE PaymentType
-                                            SET AcctNumber=@account, 
-                                            Name=@name
-                                            WHERE Id = @Id";
-                        cmd.Parameters.Add(new SqlParameter("@first", PaymentType.AcctNumber));
-                        cmd.Parameters.Add(new SqlParameter("@last", PaymentType.Name));
-                        cmd.Parameters.Add(new SqlParameter("@Id", id));
-
+                                                        SET AcctNumber = @AcctNumber,
+                                                        Name = @Name,
+                                                        CustomerId=@CustomerId,
+                                                        IsArchived = 0 WHERE id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@AcctNumber", paymentType.AcctNumber));
+                        cmd.Parameters.Add(new SqlParameter("@Name", paymentType.Name));
+                        cmd.Parameters.Add(new SqlParameter("@CustomerId", paymentType.CustomerId));
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
                         int rowsAffected = cmd.ExecuteNonQuery();
                         if (rowsAffected > 0)
                         {
                             return new StatusCodeResult(StatusCodes.Status204NoContent);
                         }
-                        throw new Exception("No rows affected");
+                        throw new Exception("No Rows Affected");
                     }
                 }
             }
             catch (Exception)
             {
-                if (!PaymentTypeExist(id))
+                if (!PaymentTypeExists(id))
                 {
                     return NotFound();
                 }
@@ -391,27 +167,9 @@ namespace BangazonAPI.Controllers
             }
         }
 
-
-        // DELETE a Payment Type:
+        // DELETE Code for Payment Type ("SOFT Delete" Changes 'IsArchived' to 1 [true]):
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        //{
-        //    if (!ModelState.IsValid)
-        //    {
-        //        return BadRequest(ModelState);
-        //    }
-
-        //    PaymentType paymentType = _context.PaymentType.Single(m => m.Id == id);
-        //    if (paymentType == null)
-        //    {
-        //        return NotFound();
-        //    }
-
-        //    _context.PaymentType.Remove(paymentType);
-        //    _context.SaveChanges();
-
-        //    return Ok(paymentType);
-        //}
+        public async Task<IActionResult> deletePaymentType([FromRoute] int id, bool HardDelete)
         {
             try
             {
@@ -420,21 +178,30 @@ namespace BangazonAPI.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"DELETE FROM PaymentType WHERE Id = @id";
+                        if (HardDelete == true)
+                        {
+                            cmd.CommandText = @"DELETE PaymentType
+                                              WHERE id = @id";
+                        }
+                        else
+                        {
+                            cmd.CommandText = @"UPDATE PaymentType
+                                            SET IsArchived = 1
+                                            WHERE id = @id";
+                        }
                         cmd.Parameters.Add(new SqlParameter("@id", id));
-
                         int rowsAffected = cmd.ExecuteNonQuery();
                         if (rowsAffected > 0)
                         {
                             return new StatusCodeResult(StatusCodes.Status204NoContent);
                         }
-                        throw new Exception("No rows affected");
+                        throw new Exception("No Rows Affected");
                     }
                 }
             }
             catch (Exception)
             {
-                if (!PaymentTypeExist(id))
+                if (!PaymentTypeExists(id))
                 {
                     return NotFound();
                 }
@@ -445,20 +212,17 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        private bool PaymentTypeExist(int id)
+        private bool PaymentTypeExists(int id)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"
-                        SELECT
-                            AcctNumber, Name
-                        FROM PaymentType
-                        WHERE Id = @id";
+                    cmd.CommandText = @"SELECT Id, name
+                                    FROM PaymentType
+                                    WHERE Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
-
                     SqlDataReader reader = cmd.ExecuteReader();
                     return reader.Read();
                 }

@@ -105,9 +105,9 @@ namespace CustomerResource.Controllers
                             FirstName = reader.GetString(reader.GetOrdinal("Customer First Name")),
                             LastName = reader.GetString(reader.GetOrdinal("Customer Last Name"))
                         };
-                        
+
                         //Getting the information of the products if include == 'products'
-                        if(include == "products")
+                        if (include == "products")
                         {
                             Product currentProduct = new Product
                             {
@@ -121,7 +121,7 @@ namespace CustomerResource.Controllers
                             };
 
                             // Determining if customers list already has the current product in it
-                            if(customers.Any(c => c.Id == attempt.Id))
+                            if (customers.Any(c => c.Id == attempt.Id))
                             {
                                 //Finds the product in the list (if it is in there)
                                 Customer thisCustomer = customers.Where(c => c.Id == attempt.Id).FirstOrDefault();

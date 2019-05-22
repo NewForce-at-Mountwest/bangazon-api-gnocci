@@ -36,7 +36,7 @@ namespace BangazonAPI.Controllers
 
         //Get method with two strings, 'include', 'q'
         [HttpGet]
-        public async Task<IActionResult> Get(string include, bool completed)
+        public async Task<IActionResult> Get(string include, string completed)
         {
             using (SqlConnection conn = Connection)
             {
@@ -89,12 +89,15 @@ namespace BangazonAPI.Controllers
                                      {customerColumn}
                                      {customerTable}";
                     }
-
-
-                    if (completed == true)
+                    if(completed == "false")
                     {
-                        command = @"SELECT o.Id AS 'Order Id', o.PaymentTypeId AS 'Payment-Type Id', o.CustomerId AS 'Customer Id', p.AcctNumber AS 'Account Number', p.[Name] AS 'Name' FROM [Order] o JOIN PaymentType p ON o.PaymentTypeId = p.Id";
+                        command = $@"{orderColumn}{orderTable} WHERE o.PaymentTypeId is NULL";
                     }
+                    if(completed == "true")
+                    {
+                        command = $@"{orderColumn}{orderTable} WHERE o.PaymentTypeId > 0";
+                    }
+
 
                     cmd.CommandText = command;
                     SqlDataReader reader = cmd.ExecuteReader();
@@ -106,9 +109,30 @@ namespace BangazonAPI.Controllers
                         //Getting the information of the customer - FUTURE JOSH MAKE SURE YOU REFERENCE WHAT YOU SET THE COLUM NAME 'AS' --
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Order Id")),
-                            PaymentTypeId = reader.GetInt32(reader.GetOrdinal("Payment-Type Id")),
                             CustomerId = reader.GetInt32(reader.GetOrdinal("Customer Id"))
+
                         };
+                        if (!reader.IsDBNull(reader.GetOrdinal("Payment-Type Id")))
+                        {
+                            currentOrder.PaymentTypeId = reader.GetInt32(reader.GetOrdinal("Payment-Type Id"));
+                        }
+
+                        if (completed == "false")
+                        {
+                            Order newOrder = new Order
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Order Id")),
+                                CustomerId = reader.GetInt32(reader.GetOrdinal("Customer Id"))
+                            };
+                        
+                                if (!reader.IsDBNull(reader.GetOrdinal("Payment-Type Id")))
+                                {
+                                    newOrder.PaymentTypeId = reader.GetInt32(reader.GetOrdinal("Payment-Type Id"));
+                                }
+
+                            };
+
+                        
 
                         //Getting the information of the products if include == 'products'
                         if (include == "products")
@@ -266,7 +290,7 @@ namespace BangazonAPI.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"DELETE FROM Order WHERE Id = @id";
+                        cmd.CommandText = @"DELETE FROM [Order] WHERE Id = @id";
                         cmd.Parameters.Add(new SqlParameter("@id", id));
 
                         int rowsAffected = cmd.ExecuteNonQuery();
@@ -300,7 +324,7 @@ namespace BangazonAPI.Controllers
                     cmd.CommandText = @"
                         SELECT
                             PaymentTypeId, CustomerId
-                        FROM Order
+                        FROM [Order]
                         WHERE Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
 

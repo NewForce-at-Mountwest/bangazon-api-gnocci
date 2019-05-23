@@ -7,10 +7,10 @@ using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 using System.Linq;
-using BangazonAPI;
+using TestBangazonAPI;
 
-namespace TestBangazonAPI
-{
+namespace BangazonAPITest
+{ 
 
     public class TestProductType
     {

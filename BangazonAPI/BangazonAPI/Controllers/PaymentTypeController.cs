@@ -120,7 +120,7 @@ namespace BangazonAPI.Controllers
                     cmd.Parameters.Add(new SqlParameter("@CustomerId", paymentType.CustomerId));
                     int newId = (int)cmd.ExecuteScalar();
                     paymentType.Id = newId;
-                    return CreatedAtRoute("PaymentType", new { id = newId }, paymentType);
+                    return CreatedAtRoute("PaymentType", new { Id = newId }, paymentType);
                 }
             }
         }

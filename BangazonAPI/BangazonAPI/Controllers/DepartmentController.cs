@@ -52,11 +52,11 @@ namespace BangazonAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    string commandText = $"SELECT d.Id as 'DepartmentId', d.Name AS 'Department Name', d.Budget, e.id as 'EmployeeId', e.FirstName as 'Employee FirstName', e.LastName as 'Employee lastName', e.IsSuperVisor FROM Department d Full JOIN Employee e on d.id = e.departmentId";
+                    string commandText = $"SELECT d.Id as 'DepartmentId', d.Name AS 'Department Name', d.Budget AS 'Department Budget', e.id as 'EmployeeId', e.FirstName as 'Employee First Name', e.LastName as 'Employee Last Name', e.IsSuperVisor FROM Department d Full JOIN Employee e on d.Id = e.departmentId";
                     //Query String Parameters of `?_filter=budget&_gt=':
-                    if (_filter == "budget")
+                    if (_filter == "Budget")
                     {
-                        commandText += $" WHERE d.budget >= '{_gt}'";
+                        commandText += $" WHERE d.Budget >= '{_gt}'";
                     }
                     cmd.CommandText = commandText;
                     SqlDataReader reader = cmd.ExecuteReader();
@@ -79,8 +79,8 @@ namespace BangazonAPI.Controllers
                             employee = new Employee
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
-                                FirstName = reader.GetString(reader.GetOrdinal("Employee FirstName")),
-                                LastName = reader.GetString(reader.GetOrdinal("Employee LastName")),
+                                FirstName = reader.GetString(reader.GetOrdinal("Employee First Name")),
+                                LastName = reader.GetString(reader.GetOrdinal("Employee Last Name")),
                                 DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
                                 IsSuperVisor = reader.GetBoolean(reader.GetOrdinal("isSuperVisor"))
                             };
@@ -115,17 +115,17 @@ namespace BangazonAPI.Controllers
         }
 
         //GET Single Department:
-        [HttpGet("{id}", Name = "Department")]
+        [HttpGet("{Id}", Name = "Department")]
 
-        public async Task<IActionResult> GetSingleDepartment([FromRoute] int id, string _include)
+        public async Task<IActionResult> GetSingleDepartment([FromRoute] int Id, string _include)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = $"SELECT d.Id as 'DepartmentId', d.[Name] AS 'Department Name', d.Budget, e.id as 'EmployeeId', e.FirstName as 'Employee FirstName', e.LastName as 'Employee lastName', e.IsSuperVisor FROM Department d Full JOIN Employee e on d.id = e.departmentId WHERE d.Id=@id";
-                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                    cmd.CommandText = $"SELECT d.Id as 'Department Id', d.Name AS 'Department Name', d.Budget, e.Id as 'Employee Id', e.FirstName as 'Employee First Name', e.LastName as 'Employee Last Name', e.IsSuperVisor FROM Department d Full JOIN Employee e on d.Id = e.DepartmentId WHERE d.Id=@Id";
+                    cmd.Parameters.Add(new SqlParameter("@Id", Id));
                     SqlDataReader reader = cmd.ExecuteReader();
                     Employee employee = null;
                     Department departmentToDisplay = null;
@@ -144,14 +144,14 @@ namespace BangazonAPI.Controllers
                         }
                         if (_include == "employees")
                         {
-                            if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
+                            if (!reader.IsDBNull(reader.GetOrdinal("Employee Id")))
                             {
                                 employee = new Employee
                                 {
-                                    Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
-                                    FirstName = reader.GetString(reader.GetOrdinal("Employee FirstName")),
-                                    LastName = reader.GetString(reader.GetOrdinal("Employee LastName")),
-                                    DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                    Id = reader.GetInt32(reader.GetOrdinal("Employee Id")),
+                                    FirstName = reader.GetString(reader.GetOrdinal("Employee First Name")),
+                                    LastName = reader.GetString(reader.GetOrdinal("Employee Last Name")),
+                                    DepartmentId = reader.GetInt32(reader.GetOrdinal("Department Id")),
                                     IsSuperVisor = reader.GetBoolean(reader.GetOrdinal("isSuperVisor"))
                                 };
                                 departmentToDisplay.EmployeeList.Add(employee);
@@ -180,14 +180,14 @@ namespace BangazonAPI.Controllers
                     cmd.Parameters.Add(new SqlParameter("@Budget", department.Budget));
                     int newId = (int)cmd.ExecuteScalar();
                     department.Id = newId;
-                    return CreatedAtRoute("Department", new { id = newId }, department);
+                    return CreatedAtRoute("Department", new { Id = newId }, department);
                 }
             }
         }
 
         // PUT to Edit Department:
         [HttpPut("{id}")]
-        public async Task<IActionResult> PutDepartment([FromRoute] int id, [FromBody] Department department)
+        public async Task<IActionResult> PutDepartment([FromRoute] int Id, [FromBody] Department department)
         {
             try
             {
@@ -199,10 +199,10 @@ namespace BangazonAPI.Controllers
                         cmd.CommandText = @"UPDATE Department
                                            SET name = @Name,
                                            Budget = @Budget
-                                           WHERE id = @id";
+                                           WHERE Id = @Id";
                         cmd.Parameters.Add(new SqlParameter("@Name", department.Name));
                         cmd.Parameters.Add(new SqlParameter("@Budget", department.Budget));
-                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        cmd.Parameters.Add(new SqlParameter("@Id", Id));
                         int rowsAffected = cmd.ExecuteNonQuery();
                         if (rowsAffected > 0)
                         {
@@ -214,7 +214,7 @@ namespace BangazonAPI.Controllers
             }
             catch (Exception)
             {
-                if (!DepartmentExists(id))
+                if (!DepartmentExists(Id))
                 {
                     return NotFound();
                 }
@@ -227,7 +227,7 @@ namespace BangazonAPI.Controllers
 
         // DELETE Department:
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteDepartment([FromRoute] int id, string q)
+        public async Task<IActionResult> DeleteDepartment([FromRoute] int Id, string q)
         {
             try
             {
@@ -239,9 +239,9 @@ namespace BangazonAPI.Controllers
                         if (q == "delete_test_item")
                         {
                             cmd.CommandText = @"DELETE Department
-                                              WHERE id = @id";
+                                              WHERE Id = @Id";
                         }
-                        cmd.Parameters.Add(new SqlParameter("@id", id));
+                        cmd.Parameters.Add(new SqlParameter("@Id", Id));
                         int rowsAffected = cmd.ExecuteNonQuery();
                         if (rowsAffected > 0)
                         {
@@ -253,7 +253,7 @@ namespace BangazonAPI.Controllers
             }
             catch (Exception)
             {
-                if (!DepartmentExists(id))
+                if (!DepartmentExists(Id))
                 {
                     return NotFound();
                 }
@@ -264,7 +264,7 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        private bool DepartmentExists(int id)
+        private bool DepartmentExists(int Id)
         {
             using (SqlConnection conn = Connection)
             {
@@ -273,8 +273,8 @@ namespace BangazonAPI.Controllers
                 {
                     cmd.CommandText = @"SELECT Id, Name
                                             FROM Department
-                                            WHERE Id = @id";
-                    cmd.Parameters.Add(new SqlParameter("@id", id));
+                                            WHERE Id = @Id";
+                    cmd.Parameters.Add(new SqlParameter("@Id", Id));
                     SqlDataReader reader = cmd.ExecuteReader();
                     return reader.Read();
                 }

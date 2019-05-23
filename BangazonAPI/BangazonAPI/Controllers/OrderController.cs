@@ -239,7 +239,7 @@ namespace BangazonAPI.Controllers
                     cmd.Parameters.Add(new SqlParameter("@CustomerId", Order.CustomerId));
                     int newId = (int)cmd.ExecuteScalar();
                     Order.Id = newId;
-                    return CreatedAtRoute("GetOrder", new { id = newId }, Order);
+                    return CreatedAtRoute("GetOrder", new { Id = newId }, Order);
                 }
             }
         }

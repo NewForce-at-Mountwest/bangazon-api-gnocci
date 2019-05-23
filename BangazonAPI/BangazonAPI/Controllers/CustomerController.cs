@@ -220,7 +220,7 @@ namespace CustomerResource.Controllers
                     cmd.Parameters.Add(new SqlParameter("@lastname", Customer.LastName));
                     int newId = (int)cmd.ExecuteScalar();
                     Customer.Id = newId;
-                    return CreatedAtRoute("GetCustomer", new { id = newId }, Customer);
+                    return CreatedAtRoute("GetCustomer", new { Id = newId }, Customer);
                 }
             }
         }

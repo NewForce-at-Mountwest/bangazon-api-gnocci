@@ -102,7 +102,7 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        //  POST: Code to CREATE a Payment Type:
+        //  POST: Code to CREATE a Payment Type ('IsArchived' to 0 [false]):
         [HttpPost]
         public async Task<IActionResult> PostPaymentType([FromBody] PaymentType paymentType)
         {
@@ -113,7 +113,7 @@ namespace BangazonAPI.Controllers
                 {
                     cmd.CommandText = $@"INSERT INTO PaymentType (AcctNumber, Name, CustomerId, IsArchived)
                                                     OUTPUT INSERTED.Id
-                                                    VALUES (@AcctNumber, @Name, @CustomerId, 1)";
+                                                    VALUES (@AcctNumber, @Name, @CustomerId, 0)";
                     cmd.Parameters.Add(new SqlParameter("@AcctNumber", paymentType.AcctNumber));
                     cmd.Parameters.Add(new SqlParameter("@Name", paymentType.Name));
                     cmd.Parameters.Add(new SqlParameter("@CustomerId", paymentType.CustomerId));
@@ -166,7 +166,7 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // DELETE Code for Payment Type ("SOFT Delete" Changes 'IsArchived' to 0 [false]):
+        // DELETE Code for Payment Type ("SOFT Delete" Changes 'IsArchived' to 1 [true]):
         [HttpDelete("{id}")]
         public async Task<IActionResult> deletePaymentType([FromRoute] int id, bool HardDelete)
         {

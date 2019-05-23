@@ -8,8 +8,7 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 
-//Ticket #3: Allow Developers to Access Payment Type Resource
-
+//Ticket #3: Allow Developers to Access Payment Type Resource:
 //# Feature Criteria:
 // - `GET`
 // - `POST`
@@ -167,7 +166,7 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // DELETE Code for Payment Type ("SOFT Delete" Changes 'IsArchived' to 1 [true]):
+        // DELETE Code for Payment Type ("SOFT Delete" Changes 'IsArchived' to 0 [false]):
         [HttpDelete("{id}")]
         public async Task<IActionResult> deletePaymentType([FromRoute] int id, bool HardDelete)
         {

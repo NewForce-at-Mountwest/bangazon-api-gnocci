@@ -60,8 +60,7 @@ namespace BangazonAPI.Controllers
                                 Budget = reader.GetInt32(reader.GetOrdinal("Budget"))
                             }
 
-                            //CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
-                        };
+                       };
                         if (!reader.IsDBNull(reader.GetOrdinal("ComputerEmployee Id")))
                         {
                             Computer AssignedComputer = new Computer
@@ -69,8 +68,7 @@ namespace BangazonAPI.Controllers
                                 Id = reader.GetInt32(reader.GetOrdinal("ComputerEmployee Id")),
                                 Make = reader.GetString(reader.GetOrdinal("Make")),
                                 Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
-                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
-                                //DecomissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate"))
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate"))
 
                             };
                             employee.AssignedComputer = AssignedComputer;
@@ -103,15 +101,11 @@ namespace BangazonAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"Select e.Id, e.DepartmentId, e.FirstName, e.LastName,
-                                       e.IsSuperVisor, d.Id, d.Budget, d.Name AS 'Department Name',
-                                       ce.Id, ce.EmployeeId, ce.ComputerId, c.Id, c.Make,
-                                       c.Manufacturer, c.PurchaseDate, c.DecomissionDate, ce.AssignDate 
-                                       FROM Employee e 
-                                       JOIN Department d ON e.DepartmentId = d.Id
-                                       JOIN ComputerEmployee ce ON e.Id = ce.EmployeeId 
-                                       JOIN Computer c ON ce.EmployeeId = c.Id
-                                       WHERE e.Id = @id"; 
+                    cmd.CommandText = @"Select e.Id, e.DepartmentId, e.FirstName, e.LastName, e.IsSuperVisor, d.Id, d.Budget, d.Name AS 'Department Name', ce.Id AS 'ComputerEmployee Id', ce.EmployeeId, ce.ComputerId, c.Id, c.Make, c.Manufacturer, c.PurchaseDate, c.DecomissionDate, ce.AssignDate  
+                      FROM Employee e  
+                      LEFT JOIN ComputerEmployee ce on e.id = ce.EmployeeId  
+                      LEFT JOIN Computer c on ce.ComputerId = c.Id  
+                      JOIN Department d on e.DepartmentId = d.Id WHERE e.Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@Id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
@@ -119,31 +113,32 @@ namespace BangazonAPI.Controllers
 
                     if (reader.Read())
                     {
-                         employee = new Employee
+                            employee = new Employee
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
                             FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
                             LastName = reader.GetString(reader.GetOrdinal("LastName")),
                             IsSuperVisor = reader.GetBoolean(reader.GetOrdinal("IsSuperVisor")),
                             DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
-                            AssignedComputer = new Computer
-                            {
-                                Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                                Make = reader.GetString(reader.GetOrdinal("Make")),
-                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
-                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate")),
-                                //DecomissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate"))
-
-                            },
                             CurrentDepartment = new Department
                             {
                                 Id = reader.GetInt32(reader.GetOrdinal("Id")),
                                 Name = reader.GetString(reader.GetOrdinal("Department Name")),
                                 Budget = reader.GetInt32(reader.GetOrdinal("Budget"))
                             }
+                       };
+                        if (!reader.IsDBNull(reader.GetOrdinal("ComputerEmployee Id")))
+                        {
+                            Computer AssignedComputer = new Computer
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("ComputerEmployee Id")),
+                                Make = reader.GetString(reader.GetOrdinal("Make")),
+                                Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
+                                PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate"))
+                            };
+                            employee.AssignedComputer = AssignedComputer;
+                        }
 
-                            //CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId")),
-                        };
 
                     }
                     reader.Close();
@@ -183,14 +178,105 @@ namespace BangazonAPI.Controllers
 
         // PUT: api/Employee/5
         [HttpPut("{id}")]
-        public void Put(int id, [FromBody] string value)
+        public async Task<IActionResult> Put([FromRoute] int id, [FromBody] Employee employee)
         {
+            try
+            {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"UPDATE Employee
+                                            SET FirstName = @FirstName,
+                                                LastName = @LastName,
+                                                DepartmentId = @DepartmentId,
+                                                IsSuperVisor = @IsSuperVisor
+                                            WHERE id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@FirstName", employee.FirstName));
+                        cmd.Parameters.Add(new SqlParameter("@LastName", employee.LastName));
+                        cmd.Parameters.Add(new SqlParameter("@DepartmentId", employee.DepartmentId));
+                        cmd.Parameters.Add(new SqlParameter("@IsSuperVisor", employee.IsSuperVisor));
+                        cmd.Parameters.Add(new SqlParameter("@Id", id));
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        if (rowsAffected > 0)
+                        {
+                            return new StatusCodeResult(StatusCodes.Status204NoContent);
+                        }
+                        throw new Exception("No rows affected");
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                if (!EmployeeExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
 
-        // DELETE: api/ApiWithActions/5
         [HttpDelete("{id}")]
-        public void Delete(int id)
+        public async Task<IActionResult> Delete([FromRoute] int id)
         {
+            try
+            {
+                using (SqlConnection conn = Connection)
+                {
+                    conn.Open();
+                    using (SqlCommand cmd = conn.CreateCommand())
+                    {
+                        cmd.CommandText = @"DELETE FROM Employee WHERE Id = @id";
+                        cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                        int rowsAffected = cmd.ExecuteNonQuery();
+                        if (rowsAffected > 0)
+                        {
+                            return new StatusCodeResult(StatusCodes.Status204NoContent);
+                        }
+                        throw new Exception("No rows affected");
+                    }
+                }
+            }
+            catch (Exception)
+            {
+                if (!EmployeeExists(id))
+                {
+                    return NotFound();
+                }
+                else
+                {
+                    throw;
+                }
+            }
         }
+        private bool EmployeeExists(int id)
+        {
+            using (SqlConnection conn = Connection)
+            {
+                conn.Open();
+                using (SqlCommand cmd = conn.CreateCommand())
+                {
+                    cmd.CommandText = @"
+                        SELECT Id, FirstName, LastName, DepartmentId, IsSupervisor
+                        FROM Employee
+                        WHERE Id = @id";
+                    cmd.Parameters.Add(new SqlParameter("@id", id));
+
+                    SqlDataReader reader = cmd.ExecuteReader();
+                    return reader.Read();
+                }
+            }
+        }
+
     }
+
+
+    
+
 }

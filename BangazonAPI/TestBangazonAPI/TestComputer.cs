@@ -16,15 +16,13 @@ namespace TestBangazonAPI
     {
 
 
-        // Create a new producttype in the db and make sure we get a 200 OK status code back
+        // Create a new Computer in the db and make sure we get a 200 OK status code back
         public async Task<Computer> CreateComputer(HttpClient client)
         {
             Computer computer = new Computer
             {
-                //PurchaseDate = new System.DateTime().Date,
                 PurchaseDate = new System.DateTime(2015, 09, 12, 5, 42, 22),
 
-                //DecomissionDate = new System.DateTime().Date,
                 DecomissionDate = new System.DateTime(2015, 09, 12, 5, 42, 22),
 
                 Make = "MacBook Bro",
@@ -50,16 +48,16 @@ namespace TestBangazonAPI
             return newComputer;
 
         }
-        // Delete a producttype in the database and make sure we get a no content status code back
+        // Delete a Computer in the database and make sure we get a no content status code back
         public async Task deleteComputer(Computer computer, HttpClient client)
         {
-            //here we make harddelete = true so we can actually delete the new producttype from the db instead of archive it
+            //here we make harddelete = true so we can actually delete the new Computer from the db instead of archive it
             HttpResponseMessage deleteResponse = await client.DeleteAsync($"api/Computer/{computer.Id}?harddelete=true");
             deleteResponse.EnsureSuccessStatusCode();
             Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
         }
 
-        //Test to make sure we can get every producttype in the db
+        //Test to make sure we can get every Computer in the db
         [Fact]
         public async Task Test_Get_All_Computers()
         {
@@ -82,7 +80,7 @@ namespace TestBangazonAPI
                 // Did we get back a 200 OK status code?
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-                // Are there any producttypes in the list?
+                // Are there any Computers in the list?
                 Assert.True(ComputerList.Count > 0);
             }
         }
@@ -94,10 +92,10 @@ namespace TestBangazonAPI
             using (HttpClient client = new APIClientProvider().Client)
             {
 
-                // Create a new producttype
+                // Create a new Computer
                 Computer newComputer = await CreateComputer(client);
 
-                // Try to get that producttype from the database
+                // Try to get that Computer from the database
                 HttpResponseMessage response = await client.GetAsync($"api/Computer/{newComputer.Id}");
 
                 response.EnsureSuccessStatusCode();
@@ -112,12 +110,12 @@ namespace TestBangazonAPI
                 Assert.Equal(HttpStatusCode.OK, response.StatusCode);
                 Assert.Equal("MacBook Bro", otherComputer.Make);
 
-                // delete the producttype so we don't over-populate our database
+                // delete the Computer so we don't over-populate our database
                 deleteComputer(newComputer, client);
             }
         }
 
-        //test ot make sure we don't get a producttype back when we put in a randomly high id that is not in the database
+        //test ot make sure we don't get a Computer back when we put in a randomly high id that is not in the database
         [Fact]
         public async Task Test_Get_NonExitant_Computer_Fails()
         {
@@ -131,14 +129,14 @@ namespace TestBangazonAPI
             }
         }
 
-        //Test to make sure we can create and delete a producttype
+        //Test to make sure we can create and delete a Computer
         [Fact]
         public async Task Test_Create_And_Delete_Computer()
         {
             using (var client = new APIClientProvider().Client)
             {
 
-                // Create a new producttype
+                // Create a new Computer
                 Computer Computer = await CreateComputer(client);
 
                 // Make sure his info checks out
@@ -148,7 +146,7 @@ namespace TestBangazonAPI
             }
         }
 
-        //Test to make sure we can't delete a producttype that is not in the DB
+        //Test to make sure we can't delete a Computer that is not in the DB
         [Fact]
         public async Task Test_Delete_NonExistent_Computer_Fails()
         {
@@ -161,18 +159,18 @@ namespace TestBangazonAPI
             }
         }
 
-        //Test to edit a producttype
+        //Test to edit a Computer
         [Fact]
         public async Task Test_Modify_Computer()
         {
 
-            // create a string to change the producttypes name
+            // create a string to change the Computers name
             string newMake = "MacBook BROS";
 
             using (HttpClient client = new APIClientProvider().Client)
             {
 
-                // create new producttype
+                // create new Computer
                 Computer newcomputer = await CreateComputer(client);
 
                 // Change the name
@@ -196,7 +194,7 @@ namespace TestBangazonAPI
                 // We should have gotten a no content status code
                 Assert.Equal(HttpStatusCode.NoContent, response.StatusCode);
 
-                // Try to GET the producttype we just edited
+                // Try to GET the Computer we just edited
                 HttpResponseMessage getComputer = await client.GetAsync($"api/Computer/{newcomputer.Id}");
                 getComputer.EnsureSuccessStatusCode();
 

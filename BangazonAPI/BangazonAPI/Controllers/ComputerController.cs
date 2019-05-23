@@ -29,7 +29,7 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        // GET: api/ProductType
+        // GET: api/Computer
         [HttpGet]
         public async Task<IActionResult> Get()
         {
@@ -58,7 +58,7 @@ namespace BangazonAPI.Controllers
                             newComputer.DecomissionDate = reader.GetDateTime(reader.GetOrdinal("DecomissionDate"));
                         }
 
-                        //IF is archived is false we're going to add newproducttype to our product type
+                        //IF is archived is false we're going to add newComputer to our Computer
 
                         if (newComputer.isArchived == false)
                         {
@@ -73,7 +73,7 @@ namespace BangazonAPI.Controllers
             }
         }
 
-            //get single product type
+            //get single Computer
         [HttpGet("{id}", Name = "GetComputer")]
         public async Task<IActionResult> Get([FromRoute] int id)
         {
@@ -112,7 +112,7 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        //adding producttype to db 
+        //adding Computer to db 
 
         [HttpPost]
         public async Task<IActionResult> Post([FromBody] Computer Computer)
@@ -139,7 +139,7 @@ namespace BangazonAPI.Controllers
             }
         }
 
-        //edit product type
+        //edit Computer
         [HttpPut("{id}")]
         public async Task<IActionResult> Put([FromRoute] int id, [FromBody] Computer Computer)
         {
@@ -185,7 +185,7 @@ namespace BangazonAPI.Controllers
                 }
             }
         }
-        //delete prodcttype - add bool paramater for hard delete, that way if harddelete = true we hard delete else soft delete (Archive it)
+        //delete Computer - add bool paramater for hard delete, that way if harddelete = true we hard delete else soft delete (Archive it)
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete([FromRoute] int id, bool harddelete)
         {

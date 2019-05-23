@@ -8,7 +8,8 @@ using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
 
-//Ticket #3: Allow Developers to Access Payment Type Resource:
+//Ticket #3: Allow Developers to Access Payment Type Resource
+
 //# Feature Criteria:
 // - `GET`
 // - `POST`

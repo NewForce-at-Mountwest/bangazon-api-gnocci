@@ -52,7 +52,7 @@ namespace BangazonAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    string commandText = $"SELECT d.Id as 'DepartmentId', d.Name AS 'Department Name', d.Budget AS 'Department Budget', e.id as 'EmployeeId', e.FirstName as 'Employee First Name', e.LastName as 'Employee Last Name', e.IsSuperVisor FROM Department d Full JOIN Employee e on d.Id = e.departmentId";
+                    string commandText = $"SELECT d.Id as 'DepartmentId', d.Name AS 'Department Name', d.Budget AS 'Department Budget', e.Id as 'Employee Id', e.FirstName as 'Employee First Name', e.LastName as 'Employee Last Name', e.IsSuperVisor FROM Department d Full JOIN Employee e on d.Id = e.DepartmentId";
                     //Query String Parameters of `?_filter=budget&_gt=':
                     if (_filter == "Budget")
                     {
@@ -74,11 +74,11 @@ namespace BangazonAPI.Controllers
                         };
 
                         //CONFIRM Line Item on Table has an Employee[ID]:
-                        if (!reader.IsDBNull(reader.GetOrdinal("EmployeeId")))
+                        if (!reader.IsDBNull(reader.GetOrdinal("Employee Id")))
                         {
                             employee = new Employee
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("EmployeeId")),
+                                Id = reader.GetInt32(reader.GetOrdinal("Employee Id")),
                                 FirstName = reader.GetString(reader.GetOrdinal("Employee First Name")),
                                 LastName = reader.GetString(reader.GetOrdinal("Employee Last Name")),
                                 DepartmentId = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
@@ -136,7 +136,7 @@ namespace BangazonAPI.Controllers
                         {
                             departmentToDisplay = new Department
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("DepartmentId")),
+                                Id = reader.GetInt32(reader.GetOrdinal("Department Id")),
                                 Name = reader.GetString(reader.GetOrdinal("Department Name")),
                                 Budget = reader.GetInt32(reader.GetOrdinal("Department Budget"))
                             };

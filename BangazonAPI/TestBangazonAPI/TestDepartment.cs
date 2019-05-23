@@ -37,7 +37,7 @@ namespace BangazonAPITest
         // DELETE Department in the Database; Return a No Content Status Code:
         public async Task deleteDepartment(Department department, HttpClient client)
         {
-            HttpResponseMessage deleteResponse = await client.DeleteAsync($"api/department/{department.Id}?q=delete_test_item");
+            HttpResponseMessage deleteResponse = await client.DeleteAsync($"api/department/{department.Id}?HardDelete=true");
             deleteResponse.EnsureSuccessStatusCode();
             Assert.Equal(HttpStatusCode.NoContent, deleteResponse.StatusCode);
 

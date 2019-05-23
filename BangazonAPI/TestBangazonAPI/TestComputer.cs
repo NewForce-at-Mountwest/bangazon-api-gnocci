@@ -9,7 +9,7 @@ using Xunit;
 using System.Linq;
 using BangazonAPI;
 
-namespace TestBangazonAPI
+namespace BangazonAPITest
 {
 
     public class TestComputer

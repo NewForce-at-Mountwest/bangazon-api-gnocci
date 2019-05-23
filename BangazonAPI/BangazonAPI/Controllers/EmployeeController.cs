@@ -39,7 +39,7 @@ namespace BangazonAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"Select e.Id, e.DepartmentId, e.FirstName, e.LastName, e.IsSuperVisor, d.Id, d.Budget, d.Name AS 'Department Name', ce.Id AS 'ComputerEmployee Id', ce.EmployeeId, ce.ComputerId, c.Id, c.Make, c.Manufacturer, c.PurchaseDate, c.DecomissionDate, ce.AssignDate  FROM Employee e  LEFT JOIN ComputerEmployee ce on e.id = ce.EmployeeId  LEFT JOIN Computer c on ce.ComputerId = c.Id  JOIN Department d on e.DepartmentId = d.Id";
+                    cmd.CommandText = @"Select e.Id, e.DepartmentId, e.FirstName, e.LastName, e.IsSuperVisor, d.Id, d.Budget, d.Name AS 'Department Name', ce.Id AS 'ComputerEmployee Id', ce.EmployeeId, ce.ComputerId, c.Id AS 'computer Id', c.Make, c.Manufacturer, c.PurchaseDate, c.DecomissionDate, ce.AssignDate  FROM Employee e  LEFT JOIN ComputerEmployee ce on e.id = ce.EmployeeId  LEFT JOIN Computer c on ce.ComputerId = c.Id  JOIN Department d on e.DepartmentId = d.Id";
                     SqlDataReader reader = cmd.ExecuteReader();
                     List<Employee> employees = new List<Employee>();
 
@@ -61,11 +61,11 @@ namespace BangazonAPI.Controllers
                             }
 
                        };
-                        if (!reader.IsDBNull(reader.GetOrdinal("ComputerEmployee Id")))
+                        if (!reader.IsDBNull(reader.GetOrdinal("computer Id")))
                         {
                             Computer AssignedComputer = new Computer
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("ComputerEmployee Id")),
+                                Id = reader.GetInt32(reader.GetOrdinal("computer Id")),
                                 Make = reader.GetString(reader.GetOrdinal("Make")),
                                 Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
                                 PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate"))
@@ -101,7 +101,7 @@ namespace BangazonAPI.Controllers
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"Select e.Id, e.DepartmentId, e.FirstName, e.LastName, e.IsSuperVisor, d.Id, d.Budget, d.Name AS 'Department Name', ce.Id AS 'ComputerEmployee Id', ce.EmployeeId, ce.ComputerId, c.Id, c.Make, c.Manufacturer, c.PurchaseDate, c.DecomissionDate, ce.AssignDate  
+                    cmd.CommandText = @"Select e.Id, e.DepartmentId, e.FirstName, e.LastName, e.IsSuperVisor, d.Id, d.Budget, d.Name AS 'Department Name', ce.Id AS 'ComputerEmployee Id', ce.EmployeeId, ce.ComputerId, c.Id AS 'computer Id', c.Make, c.Manufacturer, c.PurchaseDate, c.DecomissionDate, ce.AssignDate  
                       FROM Employee e  
                       LEFT JOIN ComputerEmployee ce on e.id = ce.EmployeeId  
                       LEFT JOIN Computer c on ce.ComputerId = c.Id  
@@ -127,11 +127,11 @@ namespace BangazonAPI.Controllers
                                 Budget = reader.GetInt32(reader.GetOrdinal("Budget"))
                             }
                        };
-                        if (!reader.IsDBNull(reader.GetOrdinal("ComputerEmployee Id")))
+                        if (!reader.IsDBNull(reader.GetOrdinal("computer Id")))
                         {
                             Computer AssignedComputer = new Computer
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("ComputerEmployee Id")),
+                                Id = reader.GetInt32(reader.GetOrdinal("computer Id")),
                                 Make = reader.GetString(reader.GetOrdinal("Make")),
                                 Manufacturer = reader.GetString(reader.GetOrdinal("Manufacturer")),
                                 PurchaseDate = reader.GetDateTime(reader.GetOrdinal("PurchaseDate"))

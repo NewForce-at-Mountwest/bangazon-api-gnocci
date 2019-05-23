@@ -10,7 +10,7 @@ using Xunit;
 using System.Linq;
 using TestBangazonAPI;
 
-namespace BangazonAPITest
+namespace TestBangazonAPI
 {
     //NOTES FOR FUTURE REFERENCE -- I tried creating the customer then running the test and was getting back 'No test to run'
     //Here only thing I'm doing is creating the customer, not actually doing anything with it, I actually have to try to PUT/Post etc

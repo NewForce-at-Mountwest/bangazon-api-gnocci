@@ -4,7 +4,7 @@ using System.Net.Http;
 using Xunit;
 
 
-namespace BangazonAPITest
+namespace TestBangazonAPI
 
 {
     class APIClientProvider : IClassFixture<WebApplicationFactory<Startup>>

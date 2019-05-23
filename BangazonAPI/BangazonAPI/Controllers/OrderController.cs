@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
@@ -9,15 +11,16 @@ using System.Data.SqlClient;
 using BangazonAPI.Models;
 using Microsoft.AspNetCore.Http;
 
-namespace CustomerResource.Controllers
+namespace BangazonAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CustomerController : ControllerBase
+    public class OrderController : ControllerBase
     {
+
         private readonly IConfiguration _config;
 
-        public CustomerController(IConfiguration config)
+        public OrderController(IConfiguration config)
         {
             _config = config;
         }
@@ -31,9 +34,9 @@ namespace CustomerResource.Controllers
         }
 
 
-        //Get method with two strings, 'include', 'q'
+        //Get method with two strings, 'include', 'completed'
         [HttpGet]
-        public async Task<IActionResult> Get(string include, string q)
+        public async Task<IActionResult> Get(string include, string completed)
         {
             using (SqlConnection conn = Connection)
             {
@@ -42,72 +45,97 @@ namespace CustomerResource.Controllers
                 {
                     //Making an empty string "command" to build up for different query strings
                     string command = "";
-                    //Strings to show customer information
-                    string customerColumn = @"SELECT c.Id AS 'Customer Id',
-                    c.FirstName AS 'Customer First Name',
-                    c.LastName AS 'Customer Last Name'";
-                    string customerTable = "FROM Customer c";
+                    //Strings to show order information
+                    string orderColumn = @"SELECT o.Id AS 'Order Id', o.PaymentTypeId AS 'Payment-Type Id', o.CustomerId AS 'Customer Id'";
+                    string orderTable = "FROM [Order] o";
 
-                    //Making Query string to show customer product type if they ask for it (?include=products)
+                    //Making Query string to show order product type if they ask for it (?include=products)
                     if (include == "products")
                     {
+                        string orderProductColumn = @",op.Id AS 'Order-Product Id', op.OrderId AS 'Order Id', op.ProductId AS 'Product Id'";
+                        string orderProductTable = @"JOIN[Order] o ON op.OrderId = o.Id";
+
+
                         string productColumn = @",p.Id AS 'Product Id',
                                                   p.Price AS 'Product Price',
                                                   p.Title AS 'Product Title',
                                                   p.[Description] AS 'Product Description',
                                                   p.Quantity AS 'Product Quantity',p.CustomerId AS 'Customer Id', p.ProductTypeId AS 'Product Type Id'";
-                        string productTable = @"JOIN Product p ON c.Id = p.CustomerId";
+                        string productTable = @"FROM OrderProduct op JOIN Product p ON p.Id =  op.ProductId";
 
                         //Making command = the query strings 
-                        command = $@"{customerColumn}
+                        command = $@"{orderColumn}
+                                     {orderProductColumn}
                                      {productColumn}
-                                     {customerTable}
-                                      {productTable}";
+                                     {productTable}
+                                     {orderProductTable}";
                     }
                     else
-                    // set command to = just customer information if the user does not add 'include'
+                    // set command to = just order information if the user does not add 'include'
                     {
-                        command = $@"{customerColumn}
-                                      {customerTable}";
+                        command = $@"{orderColumn}
+                                      {orderTable}";
                     }
-
-                    //If statement for 'q' string, user sets q='whatever' and find 'FirstName/LastName' that is LIKE what user sets 'q=';
-                    //Future reference, don't forget to add '%' outside {q}
-                    if (q != null)
-                    {
-                        command += $" WHERE c.FirstName LIKE '{q}%' OR c.LastName LIKE '{q}%'";
-                    }
-                    //Another query string, doing the same thing as product except w/ payments
-                    if (include == "payments")
+                    //Another query string, doing the same thing as product except w/ customers
+                    if (include == "customers")
                     {
 
-                        string paymentColumn = @",pm.Id AS 'Payment Id',
-                                                  pm.Name AS 'Payment Name',
-                                                  pm.AcctNumber AS 'Payment Account Number', pm.CustomerId AS 'Customer Id'";
-                        string paymentTable = @"Join PaymentType pm on c.Id = pm.CustomerId";
-                        //Adding the strings together to show customer and payment
-                        command = $@"{customerColumn}
-                                     {paymentColumn}
-                                     {customerTable}
-                                     {paymentTable}";
+                        string customerColumn = @",
+                                                    c.FirstName AS 'Customer First Name',
+                                                    c.LastName AS 'Customer Last Name'";
+                        string customerTable = @"FROM Customer c JOIN [Order] o ON c.Id = o.CustomerId";
+                        //Adding the strings together to show customer and order
+                        command = $@"{orderColumn}
+                                     {customerColumn}
+                                     {customerTable}";
                     }
+                    if(completed == "false")
+                    {
+                        command = $@"{orderColumn}{orderTable} WHERE o.PaymentTypeId is NULL";
+                    }
+                    if(completed == "true")
+                    {
+                        command = $@"{orderColumn}{orderTable} WHERE o.PaymentTypeId > 0";
+                    }
+
 
                     cmd.CommandText = command;
                     SqlDataReader reader = cmd.ExecuteReader();
-                    List<Customer> customers = new List<Customer>();
+                    List<Order> orders = new List<Order>();
 
                     while (reader.Read())
                     {
-                        Customer attempt = new Customer
-                        //Getting the information of the customer - FUTURE JOSH MAKE SURE YOU REFERENCE WHAT YOU SET THE COLUM NAME 'AS' --
+                        Order currentOrder = new Order
+                        //Getting the information of the order
                         {
-                            Id = reader.GetInt32(reader.GetOrdinal("Customer Id")),
-                            FirstName = reader.GetString(reader.GetOrdinal("Customer First Name")),
-                            LastName = reader.GetString(reader.GetOrdinal("Customer Last Name"))
+                            Id = reader.GetInt32(reader.GetOrdinal("Order Id")),
+                            CustomerId = reader.GetInt32(reader.GetOrdinal("Customer Id"))
+
                         };
+                        if (!reader.IsDBNull(reader.GetOrdinal("Payment-Type Id")))
+                        {
+                            currentOrder.PaymentTypeId = reader.GetInt32(reader.GetOrdinal("Payment-Type Id"));
+                        }
+
+                        if (completed == "false")
+                        {
+                            Order newOrder = new Order
+                            {
+                                Id = reader.GetInt32(reader.GetOrdinal("Order Id")),
+                                CustomerId = reader.GetInt32(reader.GetOrdinal("Customer Id"))
+                            };
                         
+                                if (!reader.IsDBNull(reader.GetOrdinal("Payment-Type Id")))
+                                {
+                                    newOrder.PaymentTypeId = reader.GetInt32(reader.GetOrdinal("Payment-Type Id"));
+                                }
+
+                            };
+
+                        
+
                         //Getting the information of the products if include == 'products'
-                        if(include == "products")
+                        if (include == "products")
                         {
                             Product currentProduct = new Product
                             {
@@ -119,56 +147,47 @@ namespace CustomerResource.Controllers
                                 Description = reader.GetString(reader.GetOrdinal("Product Description")),
                                 Quantity = reader.GetInt32(reader.GetOrdinal("Product Quantity"))
                             };
-
-                            // Determining if customers list already has the current product in it
-                            if(customers.Any(c => c.Id == attempt.Id))
+                            // Determining if orders list already has the current product in it
+                            if (orders.Any(c => c.Id == currentOrder.Id))
                             {
                                 //Finds the product in the list (if it is in there)
-                                Customer thisCustomer = customers.Where(c => c.Id == attempt.Id).FirstOrDefault();
+                                Order thisCustomer = orders.Where(c => c.Id == currentOrder.Id).FirstOrDefault();
                                 thisCustomer.ProductList.Add(currentProduct);
                             }
                             else
                             {
                                 //if the product is not in the list it will add it
-                                attempt.ProductList.Add(currentProduct);
+                                currentOrder.ProductList.Add(currentProduct);
                             }
                         }
-                        if (include == "payments")
+                        if (include == "customers")
                         {
-                            //Same thing as above but for payments
-                            PaymentType currentPayment = new PaymentType
+                            //Same thing as above but for customers
+                            Customer NewCustomer = new Customer
                             {
-                                Id = reader.GetInt32(reader.GetOrdinal("Payment Id")),
-                                AcctNumber = reader.GetInt32(reader.GetOrdinal("Payment Account Number")),
-                                Name = reader.GetString(reader.GetOrdinal("Payment Name")),
-                                CustomerId = reader.GetInt32(reader.GetOrdinal("Customer Id"))
+                                Id = reader.GetInt32(reader.GetOrdinal("Customer Id")),
+                                FirstName = reader.GetString(reader.GetOrdinal("Customer First Name")),
+                                LastName = reader.GetString(reader.GetOrdinal("Customer Last Name"))
                             };
-
-                            if (customers.Any(c => c.Id == attempt.Id))
-                            {
-                                Customer thisCustomer = customers.Where(c => c.Id == attempt.Id).FirstOrDefault();
-                                thisCustomer.PaymentTypeList.Add(currentPayment);
-                            }
-                            else
-                            {
-                                attempt.PaymentTypeList.Add(currentPayment);
-                                customers.Add(attempt);
-                            }
+                            currentOrder.SingleCustomer = NewCustomer;
+                            orders.Add(currentOrder);
+                        
                         }
                         else
                         {
-                            customers.Add(attempt);
+                            orders.Add(currentOrder);
                         }
                     }
                     reader.Close();
 
-                    return Ok(customers);
+                    return Ok(orders);
                 }
             }
         }
 
-        //Get for single customer
-        [HttpGet("{Id}", Name = "GetCustomer")]
+        //getting single order
+
+        [HttpGet("{Id}", Name = "GetOrder")]
         public async Task<IActionResult> Get([FromRoute] int id)
         {
             using (SqlConnection conn = Connection)
@@ -178,57 +197,56 @@ namespace CustomerResource.Controllers
                 {
                     cmd.CommandText = @"
                         SELECT
-                            Id, FirstName, LastName
-                        FROM Customer
+                            Id, PaymentTypeId, CustomerId
+                        FROM [Order]
                         WHERE Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@Id", id));
                     SqlDataReader reader = cmd.ExecuteReader();
 
-                    Customer Customer = null;
+                    Order Order = null;
 
                     if (reader.Read())
                     {
-                        Customer = new Customer
+                        Order = new Order
                         {
                             Id = reader.GetInt32(reader.GetOrdinal("Id")),
-                            FirstName = reader.GetString(reader.GetOrdinal("FirstName")),
-                            LastName = reader.GetString(reader.GetOrdinal("LastName"))
+                            PaymentTypeId = reader.GetInt32(reader.GetOrdinal("PaymentTypeId")),
+                            CustomerId = reader.GetInt32(reader.GetOrdinal("CustomerId"))
 
                         };
                     }
                     reader.Close();
 
-                    return Ok(Customer);
+                    return Ok(Order);
                 }
             }
         }
 
+        //Method for post
 
-        //Post 'Add' Method
         [HttpPost]
-        public async Task<IActionResult> Post([FromBody] Customer Customer)
+        public async Task<IActionResult> Post([FromBody] Order Order)
         {
             using (SqlConnection conn = Connection)
             {
                 conn.Open();
                 using (SqlCommand cmd = conn.CreateCommand())
                 {
-                    cmd.CommandText = @"INSERT INTO Customer (FirstName, LastName)
+                    cmd.CommandText = @"INSERT INTO [Order] (PaymentTypeId, CustomerId)
                                         OUTPUT INSERTED.Id
-                                        VALUES (@firstname, @lastname)";
-                    cmd.Parameters.Add(new SqlParameter("@firstname", Customer.FirstName));
-                    cmd.Parameters.Add(new SqlParameter("@lastname", Customer.LastName));
+                                        VALUES (@PaymentTypeId, @CustomerId)";
+                    cmd.Parameters.Add(new SqlParameter("@PaymentTypeId", Order.PaymentTypeId));
+                    cmd.Parameters.Add(new SqlParameter("@CustomerId", Order.CustomerId));
                     int newId = (int)cmd.ExecuteScalar();
-                    Customer.Id = newId;
-                    return CreatedAtRoute("GetCustomer", new { id = newId }, Customer);
+                    Order.Id = newId;
+                    return CreatedAtRoute("GetOrder", new { id = newId }, Order);
                 }
             }
         }
 
-
-
+        //method for edit 'put'
         [HttpPut("{id}")]
-        public async Task<IActionResult> Put([FromRoute] int id, [FromBody] Customer Customer)
+        public async Task<IActionResult> Put([FromRoute] int id, [FromBody] Order Order)
         {
             try
             {
@@ -237,12 +255,12 @@ namespace CustomerResource.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"UPDATE Customer
-                                            SET FirstName=@first, 
-                                            LastName=@last
+                        cmd.CommandText = @"UPDATE [Order]
+                                            SET PaymentTypeId=@payment, 
+                                            CustomerId=@customer
                                             WHERE Id = @Id";
-                        cmd.Parameters.Add(new SqlParameter("@first", Customer.FirstName));
-                        cmd.Parameters.Add(new SqlParameter("@last", Customer.LastName));
+                        cmd.Parameters.Add(new SqlParameter("@payment", Order.PaymentTypeId));
+                        cmd.Parameters.Add(new SqlParameter("@customer", Order.CustomerId));
                         cmd.Parameters.Add(new SqlParameter("@Id", id));
 
                         int rowsAffected = cmd.ExecuteNonQuery();
@@ -256,7 +274,7 @@ namespace CustomerResource.Controllers
             }
             catch (Exception)
             {
-                if (!CustomerExist(id))
+                if (!OrderExist(id))
                 {
                     return NotFound();
                 }
@@ -267,7 +285,8 @@ namespace CustomerResource.Controllers
             }
         }
 
-        //added delete method for testing
+        //delete method
+
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete([FromRoute] int id)
         {
@@ -278,7 +297,7 @@ namespace CustomerResource.Controllers
                     conn.Open();
                     using (SqlCommand cmd = conn.CreateCommand())
                     {
-                        cmd.CommandText = @"DELETE FROM Customer WHERE Id = @id";
+                        cmd.CommandText = @"DELETE FROM [Order] WHERE Id = @id";
                         cmd.Parameters.Add(new SqlParameter("@id", id));
 
                         int rowsAffected = cmd.ExecuteNonQuery();
@@ -292,7 +311,7 @@ namespace CustomerResource.Controllers
             }
             catch (Exception)
             {
-                if (!CustomerExist(id))
+                if (!OrderExist(id))
                 {
                     return NotFound();
                 }
@@ -302,10 +321,7 @@ namespace CustomerResource.Controllers
                 }
             }
         }
-
-
-
-        private bool CustomerExist(int id)
+        private bool OrderExist(int id)
         {
             using (SqlConnection conn = Connection)
             {
@@ -314,8 +330,8 @@ namespace CustomerResource.Controllers
                 {
                     cmd.CommandText = @"
                         SELECT
-                            FirstName, LastName
-                        FROM Customer
+                            PaymentTypeId, CustomerId
+                        FROM [Order]
                         WHERE Id = @id";
                     cmd.Parameters.Add(new SqlParameter("@id", id));
 

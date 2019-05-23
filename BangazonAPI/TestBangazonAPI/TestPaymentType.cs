@@ -1,13 +1,13 @@
 
-using Newtonsoft.Json;
 using BangazonAPI.Models;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using TestBangazonAPI;
 using Xunit;
-using TestStudentExercisesAPI;
 
 //TEST Payment Type:
 namespace BangazonAPITest

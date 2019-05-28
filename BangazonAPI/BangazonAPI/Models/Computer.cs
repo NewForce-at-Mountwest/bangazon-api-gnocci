@@ -16,6 +16,7 @@ namespace BangazonAPI.Models
 
         public string Manufacturer { get; set; }
 
+        public bool isArchived { get; set; }
     }
 
 }

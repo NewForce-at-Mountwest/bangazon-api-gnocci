@@ -10,7 +10,7 @@ using Xunit;
 using System.Linq;
 using TestBangazonAPI;
 
-namespace BangazonAPITest
+namespace TestBangazonAPI
 {
 
     public class TestBangazonAPI

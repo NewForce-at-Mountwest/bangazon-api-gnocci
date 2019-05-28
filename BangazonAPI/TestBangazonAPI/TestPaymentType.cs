@@ -10,7 +10,7 @@ using Xunit;
 using TestBangazonAPI;
 
 //TEST Payment Type:
-namespace BangazonAPITest
+namespace TestBangazonAPI
 {
     public class TestPaymentType
     {

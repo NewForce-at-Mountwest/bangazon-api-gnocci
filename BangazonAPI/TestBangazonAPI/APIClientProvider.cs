@@ -5,7 +5,6 @@ using Xunit;
 
 
 namespace TestBangazonAPI
-
 {
     class APIClientProvider : IClassFixture<WebApplicationFactory<Startup>>
     {
